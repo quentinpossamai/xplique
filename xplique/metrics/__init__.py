@@ -2,6 +2,14 @@
 Explanations Metrics module
 """
 
-from .fidelity import MuFidelity, Deletion, Insertion
-from .stability import AverageStability
+from .fidelity import Deletion, Insertion, MuFidelity
 from .representativity import MeGe
+from .stability import AverageStability
+
+__all__ = [
+    "Deletion",
+    "Insertion",
+    "MuFidelity",
+    "MeGe",
+    "AverageStability",
+]
