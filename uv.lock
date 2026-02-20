@@ -3091,7 +3091,7 @@ dev = [
     { name = "tox" },
     { name = "tox-uv" },
 ]
-pytorch = [
+torch = [
     { name = "torch" },
 ]
 
@@ -3129,4 +3129,4 @@ dev = [
     { name = "tox" },
     { name = "tox-uv" },
 ]
-pytorch = [{ name = "torch", specifier = ">=2.5.0,<=2.10.0" }]
+torch = [{ name = "torch", specifier = ">=2.5.0,<=2.10.0" }]

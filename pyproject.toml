@@ -49,7 +49,7 @@ dev = [
     "tox",
     "tox-uv",
 ]
-pytorch = [
+torch = [
     "torch>=2.5.0,<=2.10.0",
 ]
 
