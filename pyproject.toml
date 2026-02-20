@@ -1,6 +1,6 @@
 [project]
 name = "xplique"
-version = "1.4.2"
+version = "1.5.1"
 description = "Explanations toolbox for TensorFlow 2"
 readme = "README.md"
 requires-python = ">=3.10,<3.14"
@@ -54,7 +54,7 @@ pytorch = [
 ]
 
 [tool.bumpversion]
-current_version = "1.4.2"
+current_version = "1.5.1"
 commit = true
 tag = false
 

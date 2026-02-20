@@ -33,7 +33,7 @@
 
   <br>
   <a href="https://deel-ai.github.io/xplique/">📘 <strong>Explore Xplique docs</strong></a>
-    |  
+    |
   <a href="https://deel-ai.github.io/xplique/latest/tutorials/"><strong>Explore Xplique tutorials</strong> 🔥</a>
   <br>
   <br>
@@ -48,7 +48,7 @@
   <a href="api/example_based/api_example_based/">Example-based</a>
 </p>
 
-> [!IMPORTANT]  
+> [!IMPORTANT]
 > With the release of Keras 3.X since TensorFlow 2.16, some methods may not function as expected. We are actively working on a fix. In the meantime, we recommend using TensorFlow 2.15 or earlier versions for optimal compatibility.
 
 The library is composed of several modules, the _Attributions Methods_ module implements various methods (e.g Saliency, Grad-CAM, Integrated-Gradients...), with explanations, examples and links to official papers.
@@ -62,7 +62,7 @@ Finally, the _Metrics_ module covers the current metrics used in explainability.
 
 <br>
 
-> [!NOTE]  
+> [!NOTE]
 > We are proud to announce the release of the _Example-based_ module! This module is dedicated to methods that explain a model by retrieving relevant examples from a dataset. It includes methods that belong to different families: similar examples, contrastive (counter-factuals and semi-factuals) examples, and prototypes (as concepts based methods have a dedicated sections).
 
 ## 🔥 Tutorials
@@ -84,15 +84,18 @@ Finally, the _Metrics_ module covers the current metrics used in explainability.
 - [**Attribution Methods**: Semantic Segmentation](https://colab.research.google.com/drive/1AHg7KO1fCOX5nZLGZfxkZ2-DLPPdSfbX) <sub> [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1AHg7KO1fCOX5nZLGZfxkZ2-DLPPdSfbX) </sub>
 - [**FORGRad**: Gradient strikes back with FORGrad](https://colab.research.google.com/drive/1ibLzn7r9QQIEmZxApObowzx8n9ukinYB) <sub> [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1ibLzn7r9QQIEmZxApObowzx8n9ukinYB) </sub>
 - [**Attribution Methods**: Metrics](https://colab.research.google.com/drive/1WEpVpFSq-oL1Ejugr8Ojb3tcbqXIOPBg) <sub> [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1WEpVpFSq-oL1Ejugr8Ojb3tcbqXIOPBg) </sub>
+- [**Attribution Methods**: Complexity Metrics](https://colab.research.google.com/drive/13boAsXGVKS0LaNzslOdjSkYIrpBJdh7K) <sub> [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/13boAsXGVKS0LaNzslOdjSkYIrpBJdh7K) </sub>
+- [**Attribution Methods**: Randomization Metrics](https://colab.research.google.com/drive/13lNkZqKajRJ63XllkQddgrPOYF1Xv9-Y) <sub> [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/13lNkZqKajRJ63XllkQddgrPOYF1Xv9-Y) </sub>
+- [**Attribution Methods**: Average Drop/Increase/Gain Fidelity Metrics](https://colab.research.google.com/drive/1nGP13qiQrsJMBx8TXgA69D-5ALoP3l9p) <sub> [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1nGP13qiQrsJMBx8TXgA69D-5ALoP3l9p) </sub>
 
 <p align="center" width="100%">
-    <a href="https://colab.research.google.com/drive/1WEpVpFSq-oL1Ejugr8Ojb3tcbqXIOPBg"> 
+    <a href="https://colab.research.google.com/drive/1WEpVpFSq-oL1Ejugr8Ojb3tcbqXIOPBg">
         <img width="95%" src="./docs/assets/metrics.jpeg">
     </a>
 </p>
 
 - [**PyTorch models**: Getting started](https://colab.research.google.com/drive/1bMlO29_0K3YnTQBbbyKQyRfo8YjvDbhe)<sub> [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1bMlO29_0K3YnTQBbbyKQyRfo8YjvDbhe) </sub>
- 
+
 - [**Concepts Methods**: Testing with Concept Activation Vectors](https://colab.research.google.com/drive/1iuEz46ZjgG97vTBH8p-vod3y14UETvVE) <sub> [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1iuEz46ZjgG97vTBH8p-vod3y14UETvVE) </sub>
 
 <p align="center" width="100%">
@@ -116,7 +119,7 @@ Finally, the _Metrics_ module covers the current metrics used in explainability.
 - [**Modern Feature Visualization with MaCo**: Getting started](https://colab.research.google.com/drive/1l0kag1o-qMY4NCbWuAwnuzkzd9sf92ic) <sub> [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1l0kag1o-qMY4NCbWuAwnuzkzd9sf92ic) </sub>
 
 <p align="center" width="100%">
-    <a href="https://colab.research.google.com/drive/1st43K9AH-UL4eZM1S4QdyrOi7Epa5K8v"> 
+    <a href="https://colab.research.google.com/drive/1st43K9AH-UL4eZM1S4QdyrOi7Epa5K8v">
         <img width="95%" src="./docs/assets/feature_viz.jpeg">
     </a>
 </p>
@@ -327,9 +330,16 @@ OD : [Object Detection](https://deel-ai.github.io/xplique/latest/api/attribution
 | MuFidelity              | TF, PyTorch** | Fidelity         | [Paper](https://arxiv.org/abs/2005.00631) |
 | Deletion                | TF, PyTorch** | Fidelity         | [Paper](https://arxiv.org/abs/1806.07421) |
 | Insertion               | TF, PyTorch** | Fidelity         | [Paper](https://arxiv.org/abs/1806.07421) |
+| AverageDropMetric       | TF, PyTorch** | Fidelity         | [Paper](https://arxiv.org/abs/1710.11063) |
+| AverageIncreaseMetric   | TF, PyTorch** | Fidelity         | [Paper](https://arxiv.org/abs/1710.11063) |
+| AverageGainMetric       | TF, PyTorch** | Fidelity         | [Paper](https://arxiv.org/abs/2301.07002) |
 | Average Stability       | TF, PyTorch** | Stability        | [Paper](https://arxiv.org/abs/2005.00631) |
 | MeGe                    | TF, PyTorch** | Representativity | [Paper](https://arxiv.org/abs/2009.04521) |
 | ReCo                    | TF, PyTorch** | Consistency      | [Paper](https://arxiv.org/abs/2009.04521) |
+| Complexity              | TF, PyTorch** | Complexity       | [Paper](https://arxiv.org/abs/2005.00631) |
+| Sparseness              | TF, PyTorch** | Complexity       | [Paper](https://proceedings.mlr.press/v119/chalasani20a.html) |
+| RandomLogitMetric       | TF, PyTorch** | Randomization    | [Paper](https://arxiv.org/abs/1810.03292) |
+| ModelRandomizationMetric| TF, PyTorch** | Randomization    | [Paper](https://arxiv.org/abs/1810.03292) |
 | (WIP) e-robustness      |
 
 TF : Tensorflow compatible
@@ -469,7 +479,7 @@ If you use Xplique as part of your workflow in a scientific publication, please 
 ```
 @article{fel2022xplique,
   title={Xplique: A Deep Learning Explainability Toolbox},
-  author={Fel, Thomas and Hervier, Lucas and Vigouroux, David and Poche, Antonin and Plakoo, Justin and Cadene, Remi and Chalvidal, Mathieu and Colin, Julien and Boissin, Thibaut and Bethune, Louis and Picard, Agustin and Nicodeme, Claire 
+  author={Fel, Thomas and Hervier, Lucas and Vigouroux, David and Poche, Antonin and Plakoo, Justin and Cadene, Remi and Chalvidal, Mathieu and Colin, Julien and Boissin, Thibaut and Bethune, Louis and Picard, Agustin and Nicodeme, Claire
           and Gardes, Laurent and Flandin, Gregory and Serre, Thomas},
   journal={Workshop on Explainable Artificial Intelligence for Computer Vision (CVPR)},
   year={2022}

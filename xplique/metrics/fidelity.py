@@ -2,6 +2,7 @@
 Fidelity (or Faithfulness) metrics
 """
 
+from abc import ABC, abstractmethod
 from inspect import isfunction
 
 import numpy as np
@@ -11,6 +12,8 @@ from scipy.stats import spearmanr
 from ..commons import batch_tensor
 from ..types import Callable, Dict, Optional, Union
 from .base import ExplanationMetric
+
+_EPS = 1e-8
 
 
 class MuFidelity(ExplanationMetric):
@@ -121,7 +124,8 @@ class MuFidelity(ExplanationMetric):
 
         correlations = []
         for inp, label, phi, base in batch_tensor(
-            (self.inputs, self.targets, explanations, self.base_predictions), self.inputs_batch_size
+            (self.inputs, self.targets, explanations, self.base_predictions),
+            self.inputs_batch_size,
         ):
             # reshape the explanations to align with future mask multiplications
             if len(inp.shape) > len(phi.shape):
@@ -133,7 +137,8 @@ class MuFidelity(ExplanationMetric):
             # loop over perturbations (a single pass if batch_size > nb_samples, batched otherwise)
             while total_perturbed_samples < self.nb_samples:
                 nb_perturbations = min(
-                    self.perturbation_batch_size, self.nb_samples - total_perturbed_samples
+                    self.perturbation_batch_size,
+                    self.nb_samples - total_perturbed_samples,
                 )
                 total_perturbed_samples += nb_perturbations
 
@@ -155,7 +160,8 @@ class MuFidelity(ExplanationMetric):
                 preds = pred if preds is None else tf.concat([preds, pred], axis=1)
 
                 attr = tf.reduce_sum(
-                    phi * (1.0 - subset_masks), axis=list(range(2, len(subset_masks.shape)))
+                    phi * (1.0 - subset_masks),
+                    axis=list(range(2, len(subset_masks.shape))),
                 )
                 attrs = attr if attrs is None else tf.concat([attrs, attr], axis=1)
 
@@ -226,7 +232,10 @@ class MuFidelity(ExplanationMetric):
         elif len(inputs.shape) == 4:  # image data
             # prepare the random masks
             subset_masks = tf.random.uniform(
-                shape=(nb_perturbations, self.grid_size**2), minval=0, maxval=1, dtype=tf.float32
+                shape=(nb_perturbations, self.grid_size**2),
+                minval=0,
+                maxval=1,
+                dtype=tf.float32,
             )
             subset_masks = subset_masks > self.subset_percent
 
@@ -555,3 +564,442 @@ class Insertion(CausalFidelity):
             operator,
             activation,
         )
+
+
+class BaseAverageXMetric(ExplanationMetric, ABC):
+    """
+    Base class for Average Drop / Increase / Gain metrics.
+
+    Parameters
+    ----------
+    model
+        Model used for computing metric.
+    inputs
+        Input samples under study.
+    targets
+        One-hot encoded labels or regression target (e.g {+1, -1}), one for each sample.
+    batch_size
+        Number of samples to process at once, if None compute all at once.
+    operator
+        Function g to explain. It should take 3 parameters (f, x, y) and return a scalar,
+        with f the model, x the inputs and y the targets. If None, use the standard
+        operator g(f, x, y) = f(x)[y].
+    activation
+        A string that belongs to [None, 'sigmoid', 'softmax']. Specify if we should add
+        an activation layer once the model has been called.
+
+    Notes
+    -----
+    Subclasses implement:
+    - `evaluate(explanations) -> float`
+    - `detailed_evaluate(inputs, targets, explanations) -> np.ndarray`
+    """
+
+    def __init__(
+        self,
+        model: tf.keras.Model,
+        inputs: Union[tf.data.Dataset, tf.Tensor, np.ndarray],
+        targets: Optional[Union[tf.Tensor, np.ndarray]] = None,
+        batch_size: Optional[int] = 64,
+        operator: Optional[Union[str, Callable]] = None,
+        activation: Optional[str] = None,
+    ):
+        super().__init__(model, inputs, targets, batch_size, operator, activation)
+
+    @staticmethod
+    def _perturb_with_mask(inputs: tf.Tensor, explanations: tf.Tensor) -> tf.Tensor:
+        """
+        Build a normalized mask from explanations and apply
+        element-wise multiplication to inputs.
+
+        This method processes explanations into a [0, 1] mask by:
+        1. Taking the absolute value of explanation scores
+        2. Averaging across channels if explanations are multi-channel (4D)
+        3. Applying per-sample min-max normalization to [0, 1]
+        4. Broadcasting the mask to match input dimensions
+        5. Performing element-wise multiplication: x ⊙ mask
+
+        The resulting perturbed inputs retain features with high attribution scores
+        while suppressing features with low scores.
+
+        Parameters
+        ----------
+        inputs : tf.Tensor
+            Input samples to perturb. Shape can be:
+            - (B, H, W, C) for images
+            - (B, T, F) for time series
+            - (B, ...) for other data types
+        explanations : tf.Tensor
+            Attribution scores for each input. Shape can be:
+            - (B, H, W, C) or (B, H, W) for images
+            - (B, T, F) or (B, T) for time series
+            Must have same batch size B as inputs.
+
+        Returns
+        -------
+        perturbed_inputs : tf.Tensor
+            Element-wise product of inputs and normalized mask, same shape as inputs.
+            Values range from 0 (fully masked) to original input value (unmasked).
+
+        Notes
+        -----
+        - Multi-channel explanations are averaged to a single channel before normalization
+        - Min-max normalization is applied independently per sample to ensure each mask
+          spans the full [0, 1] range
+        - The mask is broadcast to match input shape, preserving spatial/temporal structure
+        """
+        # Apply average if multi-channel explanations and get absolute value
+        inp = tf.convert_to_tensor(inputs, dtype=tf.float32)
+        exp = tf.convert_to_tensor(explanations, dtype=tf.float32)
+
+        # Absolute value and channel averaging
+        mask = tf.math.abs(exp)
+        if mask.shape.rank == 4:
+            mask = tf.reduce_mean(mask, axis=-1)  # (B,H,W)
+
+        # Apply min-max normalization per sample
+        axes = tf.range(1, tf.rank(mask))
+        mask_min = tf.reduce_min(mask, axis=axes, keepdims=True)
+        mask_max = tf.reduce_max(mask, axis=axes, keepdims=True)
+        mask = (mask - mask_min) / (mask_max - mask_min + _EPS)
+
+        # Broadcast mask to inputs
+        if inp.shape.rank == 4 and mask.shape.rank == 3:
+            mask = mask[..., tf.newaxis]  # (B,H,W,1)
+        if inp.shape.rank == 3 and mask.shape.rank == 2:
+            mask = mask[..., tf.newaxis]  # (B,T,1)
+
+        return tf.multiply(inp, mask)
+
+    def evaluate(self, explanations: Union[tf.Tensor, np.ndarray]) -> float:
+        """
+        Evaluate the metric over the entire dataset by iterating over batches.
+        """
+        explanations = tf.convert_to_tensor(explanations, dtype=tf.float32)
+        assert len(explanations) == len(self.inputs), (
+            "The number of explanations must match the number of inputs."
+        )
+
+        scores = []
+        for inp, tgt, phi in batch_tensor(
+            (self.inputs, self.targets, explanations),
+            self.batch_size or len(self.inputs),
+        ):
+            batch_scores = self.detailed_evaluate(inp, tgt, phi)
+            scores.append(batch_scores)
+
+        return float(np.mean(np.concatenate(scores, axis=0)))
+
+    @abstractmethod
+    def detailed_evaluate(
+        self, inputs: tf.Tensor, targets: tf.Tensor, explanations: tf.Tensor
+    ) -> np.ndarray:
+        """
+        Evaluate the metric for a single batch of inputs, targets, and explanations.
+
+        Parameters
+        ----------
+        inputs
+            Batch of input samples.
+        targets
+            Batch of target labels.
+        explanations
+            Batch of explanations.
+
+        Returns
+        -------
+        scores
+            A numpy array of shape (B,) with score per sample.
+        """
+        raise NotImplementedError()
+
+
+class AverageDropMetric(BaseAverageXMetric):
+    """
+    Average Drop (AD) — measures relative decrease in the model score when the
+    input is masked by the explanation (lower AD is better).
+
+    For each sample i:
+        base_i  = g(f, x_i, y_i)              # scalar via operator/inference fn
+        after_i = g(f, x_i ⊙ M_i, y_i)        # M_i from explanation
+        AD_i    = ReLU(base_i - after_i) / (base_i + eps)
+
+    This implementation:
+    - Uses `self.batch_inference_function` to compute the scalar scores with the
+      optional `activation` applied (softmax/sigmoid) if requested at init.
+    - Builds M_i by |explanation|, channel-average (if 4D), per-sample min-max to [0,1],
+      then broadcast to input shape, and multiplicatively masks inputs.
+
+    References
+    ----------
+    Chattopadhay, A., Sarkar, A., Howlader, P., & Balasubramanian, V. N. (2018, March).
+    Grad-cam++: Generalized gradient-based visual explanations for deep convolutional networks.
+    In 2018 IEEE winter conference on applications of computer vision (WACV) (pp. 839-847). IEEE.
+
+    Parameters
+    ----------
+    model
+        Model used for computing metric.
+    inputs
+        Input samples under study.
+    targets
+        One-hot encoded labels or regression target (e.g {+1, -1}), one for each sample.
+    batch_size
+        Number of samples to process at once, if None compute all at once.
+    operator
+        Function g to explain. It should take 3 parameters (f, x, y) and return a scalar,
+        with f the model, x the inputs and y the targets. If None, use the standard
+        operator g(f, x, y) = f(x)[y].
+    activation
+        A string that belongs to [None, 'sigmoid', 'softmax']. Specify if we should add
+        an activation layer once the model has been called.
+
+    Notes
+    -----
+    `evaluate(explanations)` returns the mean AD over the dataset.
+    """
+
+    def detailed_evaluate(
+        self, inputs: tf.Tensor, targets: tf.Tensor, explanations: tf.Tensor
+    ) -> np.ndarray:
+        """
+        Compute Average Drop scores for a batch of samples.
+
+        This method evaluates how much the model's confidence decreases when inputs
+        are masked according to their explanation-based importance. For each sample:
+
+        1. Compute base score: f(x_i, y_i)
+        2. Create normalized mask M_i from explanation
+        3. Compute perturbed score: f(x_i ⊙ M_i, y_i)
+        4. Calculate AD_i = max(0, base_i - perturbed_i) / (base_i + ε)
+
+        A lower Average Drop indicates that important features (according to the
+        explanation) are correctly identified, as masking them causes significant
+        performance degradation.
+
+        Parameters
+        ----------
+        inputs : tf.Tensor
+            Batch of input samples. Shape: (B, H, W, C) for images,
+            (B, T, F) for time series, or (B, ...) for other data types.
+        targets : tf.Tensor
+            Batch of target labels. Shape: (B, num_classes) for one-hot encoded,
+            or (B,) for class indices/regression targets.
+        explanations : tf.Tensor
+            Batch of attribution maps. Shape must be compatible with inputs
+            (same spatial/temporal dimensions, optionally without channel dimension).
+
+        Returns
+        -------
+        scores : np.ndarray
+            Per-sample Average Drop scores, shape (B,).
+            Values range from 0 (no drop or increase) to ~1 (complete drop).
+            Lower values indicate better explanations.
+
+        Notes
+        -----
+        - Uses ReLU to ignore cases where masking increases confidence
+        - Normalization by base score makes the metric scale-invariant
+        - The mask is constructed via `_perturb_with_mask`, which applies
+          absolute value, channel averaging, and min-max normalization
+        """
+        base = self.batch_inference_function(self.model, inputs, targets, self.batch_size)
+        perturbed = self._perturb_with_mask(inputs, explanations)
+        after = self.batch_inference_function(self.model, perturbed, targets, self.batch_size)
+
+        ad = tf.nn.relu(base - after) / (base + _EPS)  # per-sample
+        return ad.numpy()
+
+
+class AverageIncreaseMetric(BaseAverageXMetric):
+    """
+    Average Increase in Confidence (AIC) — fraction of samples for which the
+    masked input yields a *higher* score (higher is better).
+
+    For each sample i:
+        base_i  = g(f, x_i, y_i)
+        after_i = g(f, x_i ⊙ M_i, y_i)
+        AIC_i   = 1[after_i > base_i]
+
+    The dataset-level AIC is the mean of {AIC_i}.
+
+    Notes
+    -----
+    - Works best with probabilistic outputs; set `activation="softmax"` or `"sigmoid"`
+      if your model returns logits.
+    - `evaluate(explanations)` returns the mean indicator over the dataset.
+
+    References
+    ----------
+    Chattopadhay, A., Sarkar, A., Howlader, P., & Balasubramanian, V. N. (2018, March).
+    Grad-cam++: Generalized gradient-based visual explanations for deep convolutional networks.
+    In 2018 IEEE winter conference on applications of computer vision (WACV) (pp. 839-847). IEEE.
+
+    Parameters
+    ----------
+    model
+        Model used for computing metric.
+    inputs
+        Input samples under study.
+    targets
+        One-hot encoded labels or regression target (e.g {+1, -1}), one for each sample.
+    batch_size
+        Number of samples to process at once, if None compute all at once.
+    operator
+        Function g to explain. It should take 3 parameters (f, x, y) and return a scalar,
+        with f the model, x the inputs and y the targets. If None, use the standard
+        operator g(f, x, y) = f(x)[y].
+    activation
+        A string that belongs to [None, 'sigmoid', 'softmax']. Specify if we should add
+        an activation layer once the model has been called.
+
+    """
+
+    def detailed_evaluate(
+        self, inputs: tf.Tensor, targets: tf.Tensor, explanations: tf.Tensor
+    ) -> np.ndarray:
+        """
+        Compute Average Increase indicators for a batch of samples.
+
+        This method evaluates whether masking inputs according to their explanation-based
+        importance *increases* the model's confidence. For each sample:
+
+        1. Compute base score: f(x_i, y_i)
+        2. Create normalized mask M_i from explanation
+        3. Compute perturbed score: f(x_i ⊙ M_i, y_i)
+        4. Calculate AIC_i = 1 if after_i > base_i, else 0
+
+        A higher Average Increase indicates that the explanation highlights features
+        which, when isolated, are sufficient or even more predictive than the full input.
+        This can reveal whether explanations capture truly discriminative features.
+
+        Parameters
+        ----------
+        inputs : tf.Tensor
+            Batch of input samples. Shape: (B, H, W, C) for images,
+            (B, T, F) for time series, or (B, ...) for other data types.
+        targets : tf.Tensor
+            Batch of target labels. Shape: (B, num_classes) for one-hot encoded,
+            or (B,) for class indices/regression targets.
+        explanations : tf.Tensor
+            Batch of attribution maps. Shape must be compatible with inputs
+            (same spatial/temporal dimensions, optionally without channel dimension).
+
+        Returns
+        -------
+        scores : np.ndarray
+            Per-sample binary indicators, shape (B,).
+            Values are 0 (no increase) or 1 (confidence increased).
+            Higher mean values indicate better explanations.
+
+        Notes
+        -----
+        - Returns binary indicators; dataset-level metric is the mean (i.e., proportion)
+        - Best used with probabilistic outputs; consider `activation="softmax"` or
+          `"sigmoid"` if the model returns logits
+        - The mask is constructed via `_perturb_with_mask`, which applies
+          absolute value, channel averaging, and min-max normalization
+        """
+        base = self.batch_inference_function(self.model, inputs, targets, self.batch_size)
+        perturbed = self._perturb_with_mask(inputs, explanations)
+        after = self.batch_inference_function(self.model, perturbed, targets, self.batch_size)
+
+        inc = tf.cast(after > base, tf.float32)  # per-sample 0/1
+        return inc.numpy()
+
+
+class AverageGainMetric(BaseAverageXMetric):
+    """
+    Average Gain (AG) — normalized relative increase when the input is masked
+    by the explanation (higher AG is better, complementary to AD).
+
+    For each sample i:
+        base_i  = g(f, x_i, y_i)
+        after_i = g(f, x_i ⊙ M_i, y_i)
+        AG_i    = ReLU(after_i - base_i) / (1 - base_i + eps)
+
+    Notes
+    -----
+    - Intended for scores in [0,1]. If your model outputs logits, use
+      `activation="softmax"` / `"sigmoid"` at construction to operate on probabilities.
+    - `evaluate(explanations)` returns the mean AG over the dataset.
+
+    References
+    ----------
+    Zhang, H., Torres, F., Sicre, R., Avrithis, Y., & Ayache, S. (2024).
+    Opti-CAM: Optimizing saliency maps for interpretability.
+    Computer Vision and Image Understanding, 248, 104101.
+
+    Parameters
+    ----------
+    model
+        Model used for computing metric.
+    inputs
+        Input samples under study.
+    targets
+        One-hot encoded labels or regression target (e.g {+1, -1}), one for each sample.
+    batch_size
+        Number of samples to process at once, if None compute all at once.
+    operator
+        Function g to explain. It should take 3 parameters (f, x, y) and return a scalar,
+        with f the model, x the inputs and y the targets. If None, use the standard
+        operator g(f, x, y) = f(x)[y].
+    activation
+        A string that belongs to [None, 'sigmoid', 'softmax']. Specify if we should add
+        an activation layer once the model has been called.
+
+    """
+
+    def detailed_evaluate(
+        self, inputs: tf.Tensor, targets: tf.Tensor, explanations: tf.Tensor
+    ) -> np.ndarray:
+        """
+        Compute Average Gain scores for a batch of samples.
+
+        This method evaluates the relative increase in model confidence when inputs
+        are masked according to their explanation-based importance. For each sample:
+
+        1. Compute base score: f(x_i, y_i)
+        2. Create normalized mask M_i from explanation
+        3. Compute perturbed score: f(x_i ⊙ M_i, y_i)
+        4. Calculate AG_i = max(0, after_i - base_i) / (1 - base_i + ε)
+
+        A higher Average Gain indicates that the explanation successfully identifies
+        features which, when isolated, are sufficient to maintain or increase the
+        model's confidence. This is complementary to Average Drop and measures the
+        explanation's ability to capture discriminative features.
+
+        Parameters
+        ----------
+        inputs : tf.Tensor
+            Batch of input samples. Shape: (B, H, W, C) for images,
+            (B, T, F) for time series, or (B, ...) for other data types.
+        targets : tf.Tensor
+            Batch of target labels. Shape: (B, num_classes) for one-hot encoded,
+            or (B,) for class indices/regression targets.
+        explanations : tf.Tensor
+            Batch of attribution maps. Shape must be compatible with inputs
+            (same spatial/temporal dimensions, optionally without channel dimension).
+
+        Returns
+        -------
+        scores : np.ndarray
+            Per-sample Average Gain scores, shape (B,).
+            Values range from 0 (no gain or decrease) to potentially > 1.
+            Higher values indicate better explanations.
+
+        Notes
+        -----
+        - Uses ReLU to ignore cases where masking decreases confidence
+        - Normalization by (1 - base_i) accounts for the remaining headroom to score=1
+        - Designed for probabilistic outputs in [0, 1]; use `activation="softmax"` or
+          `"sigmoid"` if the model returns logits
+        - The mask is constructed via `_perturb_with_mask`, which applies
+          absolute value, channel averaging, and min-max normalization
+        """
+        base = self.batch_inference_function(self.model, inputs, targets, self.batch_size)
+        perturbed = self._perturb_with_mask(inputs, explanations)
+        after = self.batch_inference_function(self.model, perturbed, targets, self.batch_size)
+
+        ag = tf.nn.relu(after - base) / (1.0 - base + _EPS)  # per-sample
+        return ag.numpy()

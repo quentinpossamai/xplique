@@ -33,7 +33,7 @@
 
   <br>
   <a href="https://deel-ai.github.io/xplique/">📘 <strong>Explore Xplique docs</strong></a>
-    |  
+    |
   <a href="./tutorials/"><strong>Explore Xplique tutorials</strong> 🔥</a>
   <br>
   <br>
@@ -83,15 +83,18 @@ Finally, the _Metrics_ module covers the current metrics used in explainability.
     - [**Attribution Methods**: Semantic Segmentation](https://colab.research.google.com/drive/1AHg7KO1fCOX5nZLGZfxkZ2-DLPPdSfbX) <sub> [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1AHg7KO1fCOX5nZLGZfxkZ2-DLPPdSfbX) </sub>
     - [**FORGRad**: Gradient strikes back with FORGrad](https://colab.research.google.com/drive/1ibLzn7r9QQIEmZxApObowzx8n9ukinYB) <sub> [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1ibLzn7r9QQIEmZxApObowzx8n9ukinYB) </sub>
     - [**Attribution Methods**: Metrics](https://colab.research.google.com/drive/1WEpVpFSq-oL1Ejugr8Ojb3tcbqXIOPBg) <sub> [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1WEpVpFSq-oL1Ejugr8Ojb3tcbqXIOPBg) </sub>
+    - [**Attribution Methods**: Complexity Metrics](https://colab.research.google.com/drive/13boAsXGVKS0LaNzslOdjSkYIrpBJdh7K) <sub> [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/13boAsXGVKS0LaNzslOdjSkYIrpBJdh7K) </sub>
+    - [**Attribution Methods**: Randomization Metrics](https://colab.research.google.com/drive/13lNkZqKajRJ63XllkQddgrPOYF1Xv9-Y) <sub> [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/13lNkZqKajRJ63XllkQddgrPOYF1Xv9-Y) </sub>
+    - [**Attribution Methods**: Average Drop/Increase/Gain Fidelity Metrics](https://colab.research.google.com/drive/1nGP13qiQrsJMBx8TXgA69D-5ALoP3l9p) <sub> [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1nGP13qiQrsJMBx8TXgA69D-5ALoP3l9p) </sub>
 
     <p align="center" width="100%">
-        <a href="https://colab.research.google.com/drive/1WEpVpFSq-oL1Ejugr8Ojb3tcbqXIOPBg"> 
+        <a href="https://colab.research.google.com/drive/1WEpVpFSq-oL1Ejugr8Ojb3tcbqXIOPBg">
             <img width="95%" src="assets/metrics.jpeg">
         </a>
     </p>
 
     - [**PyTorch models**: Getting started](https://colab.research.google.com/drive/1bMlO29_0K3YnTQBbbyKQyRfo8YjvDbhe)<sub> [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1bMlO29_0K3YnTQBbbyKQyRfo8YjvDbhe) </sub>
-   
+
     - [**Concepts Methods**: Testing with Concept Activation Vectors](https://colab.research.google.com/drive/1iuEz46ZjgG97vTBH8p-vod3y14UETvVE) <sub> [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1iuEz46ZjgG97vTBH8p-vod3y14UETvVE) </sub>
 
     <p align="center" width="100%">
@@ -115,7 +118,7 @@ Finally, the _Metrics_ module covers the current metrics used in explainability.
 
     - [**Feature Visualization**: Getting started](https://colab.research.google.com/drive/1st43K9AH-UL4eZM1S4QdyrOi7Epa5K8v) <sub> [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1st43K9AH-UL4eZM1S4QdyrOi7Epa5K8v) </sub>
     <p align="center" width="100%">
-        <a href="https://colab.research.google.com/drive/1st43K9AH-UL4eZM1S4QdyrOi7Epa5K8v"> 
+        <a href="https://colab.research.google.com/drive/1st43K9AH-UL4eZM1S4QdyrOi7Epa5K8v">
             <img width="95%" src="assets/feature_viz.jpeg">
         </a>
     </p>
@@ -308,9 +311,16 @@ There are 4 modules in Xplique, [Attribution methods](api/attributions/api_attri
     | MuFidelity              | TF, PyTorch** | Fidelity         | [Paper](https://arxiv.org/abs/2005.00631) |
     | Deletion                | TF, PyTorch** | Fidelity         | [Paper](https://arxiv.org/abs/1806.07421) |
     | Insertion               | TF, PyTorch** | Fidelity         | [Paper](https://arxiv.org/abs/1806.07421) |
+    | AverageDropMetric       | TF, PyTorch** | Fidelity         | [Paper](https://arxiv.org/abs/1710.11063) |
+    | AverageIncreaseMetric   | TF, PyTorch** | Fidelity         | [Paper](https://arxiv.org/abs/1710.11063) |
+    | AverageGainMetric       | TF, PyTorch** | Fidelity         | [Paper](https://arxiv.org/abs/2301.07002) |
     | Average Stability       | TF, PyTorch** | Stability        | [Paper](https://arxiv.org/abs/2005.00631) |
     | MeGe                    | TF, PyTorch** | Representativity | [Paper](https://arxiv.org/abs/2009.04521) |
     | ReCo                    | TF, PyTorch** | Consistency      | [Paper](https://arxiv.org/abs/2009.04521) |
+    | Complexity              | TF, PyTorch** | Complexity       | [Paper](https://arxiv.org/abs/2005.0031) |
+    | Sparseness              | TF, PyTorch** | Complexity       | [Paper](https://proceedings.mlr.press/v119/chalasani20a.html) |
+    | RandomLogitMetric       | TF, PyTorch** | Randomization    | [Paper](https://arxiv.org/abs/1810.03292) |
+    | ModelRandomizationMetric| TF, PyTorch** | Randomization    | [Paper](https://arxiv.org/abs/1810.03292) |
     | (WIP) e-robustness      |
 
     TF : Tensorflow compatible
@@ -424,7 +434,7 @@ If you use Xplique as part of your workflow in a scientific publication, please 
 ```
 @article{fel2022xplique,
   title={Xplique: A Deep Learning Explainability Toolbox},
-  author={Fel, Thomas and Hervier, Lucas and Vigouroux, David and Poche, Antonin and Plakoo, Justin and Cadene, Remi and Chalvidal, Mathieu and Colin, Julien and Boissin, Thibaut and Bethune, Louis and Picard, Agustin and Nicodeme, Claire 
+  author={Fel, Thomas and Hervier, Lucas and Vigouroux, David and Poche, Antonin and Plakoo, Justin and Cadene, Remi and Chalvidal, Mathieu and Colin, Julien and Boissin, Thibaut and Bethune, Louis and Picard, Agustin and Nicodeme, Claire
           and Gardes, Laurent and Flandin, Gregory and Serre, Thomas},
   journal={Workshop on Explainable Artificial Intelligence for Computer Vision (CVPR)},
   year={2022}

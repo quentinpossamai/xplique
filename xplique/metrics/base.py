@@ -7,7 +7,7 @@ from abc import ABC, abstractmethod
 import numpy as np
 import tensorflow as tf
 
-from ..commons import Tasks, get_inference_function, numpy_sanitize
+from ..commons import Tasks, batch_tensor, get_inference_function, numpy_sanitize
 from ..types import Callable, OperatorSignature, Optional, Union
 
 
@@ -52,6 +52,63 @@ class BaseAttributionMetric(ABC):
                 self.model = lambda x: tf.nn.softmax(model(x), axis=-1)
         self.inputs, self.targets = numpy_sanitize(inputs, targets)
         self.batch_size = batch_size
+
+
+class BaseComplexityMetric(ABC):
+    """
+    Base interface for Complexity Metrics.
+    These metrics only depend on the explanations themselves.
+    Parameters
+    ----------
+    batch_size
+        Number of samples to evaluate at once.
+    """
+
+    def __init__(self, batch_size: Optional[int] = 32):
+        self.batch_size = batch_size
+
+    @abstractmethod
+    def detailed_evaluate(self, explanations: tf.Tensor) -> np.ndarray:
+        """
+        Per-batch evaluation of explanations (no reduction).
+
+        Parameters
+        ----------
+        explanations
+            Explanation for the inputs, labels to evaluate.
+
+        Returns
+        -------
+        scores
+            A numpy array of shape (B,) with score per sample.
+        """
+        raise NotImplementedError()
+
+    def evaluate(self, explanations: Union[tf.Tensor, np.ndarray]) -> float:
+        """
+        Compute the aggregated score of the given explanations.
+
+        Parameters
+        ----------
+        explanations
+            Explanation for the inputs, labels to evaluate.
+        batch_size
+            Number of samples to evaluate at once.
+
+        Returns
+        -------
+        score
+            Score of the explanations.
+        """
+        aggregated_results = []
+        for exp_batch in batch_tensor(explanations, self.batch_size):
+            batch_results = self.detailed_evaluate(exp_batch)
+            aggregated_results.extend(batch_results)
+        return float(np.mean(aggregated_results))
+
+    def __call__(self, explanations: Union[tf.Tensor, np.ndarray], batch_size: int = 32) -> float:
+        """Evaluate alias"""
+        return self.evaluate(explanations)
 
 
 class ExplainerMetric(BaseAttributionMetric, ABC):
