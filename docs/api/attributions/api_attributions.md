@@ -89,9 +89,9 @@ convolutional feature maps.
 | Method Name and Documentation link                          | **Tutorial**             | Available with TF | Available with PyTorch* |
 |:----------------------------------------------------------- | :----------------------: | :---------------: | :---------------------: |
 | [DeconvNet](../methods/deconvnet/)                          | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/19eB3uwAtCKZgkoWtMzrF0LTJ-htF_KE7) | ✔ |❌ |
+| [FEM](../methods/fem/)                                      | —                        | ✔ |❌ |
 | [GradCAM](../methods/grad_cam/)                             | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1nsB7xdQbU0zeYQ1-aB_D-M67-RAnvt4X) | ✔ |❌ |
 | [GradCAM++](../methods/grad_cam_pp/)                        | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1nsB7xdQbU0zeYQ1-aB_D-M67-RAnvt4X) | ✔ |❌ |
-| [FEM](../methods/fem/)                                      | —                        | ✔ |❌ |
 | [GradientInput](../methods/gradient_input/)                 | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/19eB3uwAtCKZgkoWtMzrF0LTJ-htF_KE7) | ✔ | ✔ |
 | [GuidedBackpropagation](../methods/guided_backpropagation/) | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/19eB3uwAtCKZgkoWtMzrF0LTJ-htF_KE7) | ✔ |❌ |
 | [IntegratedGradients](../methods/integrated_gradients/)     | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1UXJYVebDVIrkTOaOl-Zk6pHG3LWkPcLo) | ✔ | ✔ |

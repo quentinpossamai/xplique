@@ -6,8 +6,8 @@ import tensorflow as tf
 import numpy as np
 
 from .base import WhiteBoxExplainer
-from ..commons import find_layer, tensor_sanitize, Tasks
-from ..types import Tuple, Union, Optional, OperatorSignature
+from ..commons import find_layer, tensor_sanitize
+from ..types import Tuple, Union, Optional
 
 
 class FEM(WhiteBoxExplainer):
@@ -27,18 +27,8 @@ class FEM(WhiteBoxExplainer):
     ----------
     model
         The model from which we want to obtain explanations.
-    output_layer
-        Layer to target for the outputs (e.g logits or after softmax).
-        If an `int` is provided it will be interpreted as a layer index.
-        If a `string` is provided it will look for the layer name.
-
-        Default to the last layer.
-        It is recommended to use the layer before Softmax.
     batch_size
         Number of inputs to explain at once, if None compute all at once.
-    operator
-        Operator to use to compute the explanation, if None use standard predictions.
-        Not used by FEM but kept for API consistency.
     conv_layer
         Layer to target for FEM. If an int is provided it will be interpreted as a layer index.
         If a string is provided it will look for the layer name. Defaults to last conv layer.
@@ -48,13 +38,10 @@ class FEM(WhiteBoxExplainer):
 
     def __init__(self,
                  model: tf.keras.Model,
-                 output_layer: Optional[Union[str, int]] = None,
                  batch_size: Optional[int] = 32,
-                 operator: Optional[Union[Tasks, str, OperatorSignature]] = None,
                  conv_layer: Optional[Union[str, int]] = None,
                  k: float = 2.0):
-        super().__init__(model, output_layer, batch_size, operator)
-
+        self.batch_size = batch_size
         self.k = tf.cast(k, tf.float32)
 
         # find the layer to apply FEM

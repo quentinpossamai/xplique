@@ -57,9 +57,9 @@ Not yet, but it works for most of them (even for gradient-based ones!):
 | **Attribution Method** | PyTorch compatible |
 | :--------------------- | :----------------: |
 | Deconvolution          | ❌                |
+| FEM                    | ❌                |
 | Grad-CAM               | ❌                |
 | Grad-CAM++             | ❌                |
-| FEM                    | ❌                |
 | Gradient Input         | ✅                |
 | Guided Backprop        | ❌                |
 | Hsic Attribution       | ✅                |

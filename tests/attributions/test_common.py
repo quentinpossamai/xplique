@@ -18,7 +18,7 @@ def _default_methods(model, output_layer_index=None, bs=32):
         SquareGrad(model, output_layer_index, bs, nb_samples=2),
         IntegratedGradients(model, output_layer_index, bs, steps=2),
         GradCAM(model, output_layer_index, bs),
-        FEM(model, output_layer_index, bs),
+        FEM(model, batch_size=bs),
         Occlusion(model, bs, patch_size=10, patch_stride=10),
         Rise(model, bs, nb_samples=2),
         GuidedBackprop(model, output_layer_index, bs),
