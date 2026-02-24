@@ -43,6 +43,7 @@ explanations = explainer.explain(images)
 ## Notebooks
 
 - [**Attribution Methods**: Getting started](https://colab.research.google.com/drive/1XproaVxXjO9nrBSyyy7BuKJ1vy21iHs2)
+- [**Attributions: FEM**](https://drive.google.com/file/d/1fghFJylXtM18VCxoqYbOhvkXLUPHalBf/view?usp=sharing)
 
 ## References
 
