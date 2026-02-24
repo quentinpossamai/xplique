@@ -41,6 +41,7 @@ class FEM(WhiteBoxExplainer):
                  batch_size: Optional[int] = 32,
                  conv_layer: Optional[Union[str, int]] = None,
                  k: float = 2.0):
+        # pylint: disable=super-init-not-called
         self.batch_size = batch_size
         self.k = tf.cast(k, tf.float32)
 
